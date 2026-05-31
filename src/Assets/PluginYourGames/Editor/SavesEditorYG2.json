@@ -1,0 +1,21 @@
+{
+    "intExample": 5,
+    "strExample": "Hello!",
+    "boolExample": [
+        false,
+        false,
+        false,
+        false
+    ],
+    "idSave": 2,
+    "bc_bestScore": 0,
+    "bc_softCurrency": 100,
+    "bc_selectedSkin": "roma",
+    "bc_ownedSkins": [
+        "roma",
+        "nika"
+    ],
+    "bc_boostTypes": [],
+    "bc_boostCounts": [],
+    "bc_noAds": false
+}
