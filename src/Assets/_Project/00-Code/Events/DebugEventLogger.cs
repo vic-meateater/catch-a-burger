@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using Zenject;
 
@@ -15,11 +15,20 @@ namespace BurgerCatch.Events
 
     public void Initialize()
     {
-    }
-    
-    public void Dispose()
-    {
+      _signalBus.Subscribe<IngredientCaughtSignal>(OnCaught);
+      _signalBus.Subscribe<IngredientDroppedSignal>(OnDropped);
     }
 
+    public void Dispose()
+    {
+      _signalBus.Unsubscribe<IngredientCaughtSignal>(OnCaught);
+      _signalBus.Unsubscribe<IngredientDroppedSignal>(OnDropped);
+    }
+
+    private void OnCaught(IngredientCaughtSignal s)
+      => Debug.Log($"[Event] Caught {s.Type} @ {s.Side}");
+
+    private void OnDropped(IngredientDroppedSignal s)
+      => Debug.Log($"[Event] Dropped {s.Type} @ {s.Side}");
   }
 }

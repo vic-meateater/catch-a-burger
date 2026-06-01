@@ -10,8 +10,6 @@ namespace BurgerCatch.Gameplay.Time
 
     public void Tick()
     {
-      UnityEngine.Debug.Log($"[Clock] Tick, running={IsRunning}, dt={DeltaTime}");
-
       if (!IsRunning)
       {
         DeltaTime = 0;
