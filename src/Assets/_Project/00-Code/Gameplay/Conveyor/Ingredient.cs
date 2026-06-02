@@ -9,9 +9,10 @@ namespace BurgerCatch.Gameplay.Conveyor
   // Первые типы ингредиентов. Расширяется по мере роста рецептов.
   public enum IngredientType
   {
-    Bun,
-    Patty,
-    Cheese
+    Default = 0,
+    Bun = 1,
+    Patty = 2,
+    Cheese = 3,
   }
 
   public class Ingredient
