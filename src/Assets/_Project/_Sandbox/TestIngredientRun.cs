@@ -22,7 +22,6 @@ namespace _Project._Sandbox
   /// </summary>
   public sealed class TestIngredientRun : MonoBehaviour
   {
-    [SerializeField] private float _spawnEvery = 1.2f;
     [SerializeField] private Vector3 _ingredientScale = new Vector3(0.6f, 0.6f, 0.6f);
     [SerializeField] private Vector3 _chefScale = new Vector3(0.9f, 0.9f, 0.9f);
 
@@ -54,7 +53,6 @@ namespace _Project._Sandbox
       = new Dictionary<Ingredient, Transform>();
 
     private Transform _chefCube;
-    private float _spawnTimer;
     private SignalBus _signalBus;
     private OrderSystem _order;
     private Sprite _squareSprite;
@@ -108,19 +106,6 @@ namespace _Project._Sandbox
         Debug.Log($"[Test] Clock running = {_clock.IsRunning}");
       }
 
-      // Спавн по реальному времени (это леса), только когда время идёт.
-      if (_clock.IsRunning)
-      {
-        _spawnTimer += Time.deltaTime;
-        if (_spawnTimer >= _spawnEvery)
-        {
-          _spawnTimer = 0f;
-          var side = Random.value < 0.5f ? Side.Left : Side.Right;
-          var type = (IngredientType)Random.Range(0, 3);
-          _conveyor.Spawn(side, type);
-        }
-      }
-
       SyncIngredients();
       SyncChef();
     }
@@ -129,7 +114,7 @@ namespace _Project._Sandbox
     {
       switch (type)
       {
-        case IngredientType.Bun:    return new Color(0.95f, 0.75f, 0.3f);  // булка — жёлтая
+        case IngredientType.Bun:    return new Color(1f, 0.0f, 0.3f);  // булка — красная
         case IngredientType.Patty:  return new Color(0.45f, 0.25f, 0.1f);  // котлета — коричневая
         case IngredientType.Cheese: return new Color(1f, 0.6f, 0.0f);      // сыр — оранжевый
         default:                    return Color.white;

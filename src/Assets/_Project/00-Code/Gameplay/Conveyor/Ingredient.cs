@@ -3,7 +3,8 @@ namespace BurgerCatch.Gameplay.Conveyor
   public enum Side
   {
     Left,
-    Right
+    Right,
+    None
   }
 
   // Первые типы ингредиентов. Расширяется по мере роста рецептов.

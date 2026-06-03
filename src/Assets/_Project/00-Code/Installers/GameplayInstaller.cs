@@ -6,6 +6,7 @@ using BurgerCatch.Gameplay.Input;
 using BurgerCatch.Gameplay.Lives;
 using BurgerCatch.Gameplay.Order;
 using BurgerCatch.Gameplay.Scoring;
+using BurgerCatch.Gameplay.Spawn;
 using BurgerCatch.Gameplay.Time;
 using UnityEngine;
 using Zenject;
@@ -29,6 +30,8 @@ namespace BurgerCatch.Installers
       Container.Bind<BurgerStack>().AsSingle();
       Container.BindInterfacesAndSelfTo<OrderSystem>().AsSingle();
       Container.BindInterfacesAndSelfTo<ScoringSystem>().AsSingle();
+      
+      Container.BindInterfacesAndSelfTo<SpawnDirector>().AsSingle();
       
       Container.Bind<ConveyorGeometry>().FromInstance(_geometry).AsSingle();
 
