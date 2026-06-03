@@ -3,8 +3,8 @@ using System.Linq;
 using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
+using BurgerCatch.Gameplay.Order;
 using BurgerCatch.Gameplay.Time;
-using BurgerCatch.Helpers;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Zenject;
@@ -35,14 +35,16 @@ namespace _Project._Sandbox
       IGameClock clock,
       ConveyorSystem conveyor,
       ConveyorGeometry geometry,
-      ChefController chef, 
-      SignalBus signalBus)
+      ChefController chef,
+      SignalBus signalBus,
+      OrderSystem order)
     {
       _clock = clock;
       _conveyor = conveyor;
       _geometry = geometry;
       _chef = chef;
       _signalBus = signalBus;
+      _order = order;
     }
 
     private readonly Dictionary<Ingredient, Transform> _cubes
@@ -51,6 +53,8 @@ namespace _Project._Sandbox
     private Transform _chefCube;
     private float _spawnTimer;
     private SignalBus _signalBus;
+    private OrderSystem _order;
+    private Sprite _squareSprite;
 
     private void Start()
     {
@@ -65,10 +69,21 @@ namespace _Project._Sandbox
       if (rend != null) rend.material.color = Color.red;
       _chefCube = chefGo.transform;
       
-      _signalBus.Subscribe<IngredientCaughtSignal>(s =>
-        Debug.Log($"[Test] CAUGHT {s.Type} on {s.Side}"));
-      _signalBus.Subscribe<IngredientDroppedSignal>(s =>
-        Debug.Log($"[Test] DROPPED {s.Type} on {s.Side}"));
+      _squareSprite = Sprite.Create(
+        Texture2D.whiteTexture,
+        new Rect(0, 0, 1, 1),
+        new Vector2(0.5f, 0.5f), 1f);
+
+      _signalBus.Subscribe<OrderChangedSignal>(s =>
+        Debug.Log($"[Order] NEW ORDER. Need first: {s.Recipe[0]}"));
+      _signalBus.Subscribe<OrderItemMatchedSignal>(s =>
+        Debug.Log($"[Order] MATCHED {s.Type}. Next needed: {_order.Current}")); // если заинжектишь OrderSystem
+      _signalBus.Subscribe<OrderItemWrongSignal>(s =>
+        Debug.Log($"[Order] WRONG {s.Type} (dirty layer)"));
+      _signalBus.Subscribe<OrderCompletedSignal>(_ =>
+        Debug.Log("[Order] BURGER COMPLETED!"));
+      _signalBus.Subscribe<BurgerLayerAddedSignal>(s =>
+        Debug.Log($"[Stack] +layer {s.Type} dirty={s.IsDirty}, total={s.TotalLayers}"));
     }
 
     private void Update()
@@ -97,6 +112,17 @@ namespace _Project._Sandbox
       SyncIngredients();
       SyncChef();
     }
+    
+    public static Color ColorOf(IngredientType type)
+    {
+      switch (type)
+      {
+        case IngredientType.Bun:    return new Color(0.95f, 0.75f, 0.3f);  // булка — жёлтая
+        case IngredientType.Patty:  return new Color(0.45f, 0.25f, 0.1f);  // котлета — коричневая
+        case IngredientType.Cheese: return new Color(1f, 0.6f, 0.0f);      // сыр — оранжевый
+        default:                    return Color.white;
+      }
+    }
 
     private void SyncIngredients()
     {
@@ -104,15 +130,9 @@ namespace _Project._Sandbox
       foreach (var ing in _conveyor.Active)
       {
         if (_cubes.ContainsKey(ing)) continue;
-
-        var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        go.name = "__TEST_Ingredient";
+        
+        var go = CreateQuad(ColorOf(ing.Type));
         go.transform.localScale = _ingredientScale;
-        
-        var rend = go.GetComponent<Renderer>();
-        if (rend != null)
-          rend.material.color = Helpers.ColorOf(ing.Type);
-        
         _cubes[ing] = go.transform;
       }
 
@@ -142,6 +162,15 @@ namespace _Project._Sandbox
       if (_chefCube == null) return;
       // Повар стоит у устья своей текущей стороны.
       _chefCube.position = _geometry.CatchPoint(_chef.CurrentSide);
+    }
+    
+    private Transform CreateQuad(Color color)
+    {
+      var go = new GameObject("__TEST_Quad");
+      var sr = go.AddComponent<SpriteRenderer>();
+      sr.sprite = _squareSprite;   // см. ниже, откуда взять
+      sr.color = color;            // в 2D цвет работает сразу, без шейдер-плясок
+      return go.transform;
     }
   }
 }

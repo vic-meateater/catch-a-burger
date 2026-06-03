@@ -1,7 +1,10 @@
 using BurgerCatch.Events;
+using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
 using BurgerCatch.Gameplay.Input;
+using BurgerCatch.Gameplay.Lives;
+using BurgerCatch.Gameplay.Order;
 using BurgerCatch.Gameplay.Time;
 using UnityEngine;
 using Zenject;
@@ -19,6 +22,10 @@ namespace BurgerCatch.Installers
       Container.BindInterfacesAndSelfTo<ConveyorSystem>().AsSingle();
       Container.BindInterfacesAndSelfTo<NewInputService>().AsSingle();
       Container.BindInterfacesAndSelfTo<CatchResolver>().AsSingle();
+      Container.BindInterfacesAndSelfTo<LivesSystem>().AsSingle();
+      
+      Container.Bind<BurgerStack>().AsSingle();
+      Container.BindInterfacesAndSelfTo<OrderSystem>().AsSingle();
       
       Container.Bind<ConveyorGeometry>().FromInstance(_geometry).AsSingle();
 
@@ -31,6 +38,17 @@ namespace BurgerCatch.Installers
       Container.DeclareSignal<IngredientDroppedSignal>().OptionalSubscriber();
       Container.DeclareSignal<ChefMovedSignal>().OptionalSubscriber();
       Container.DeclareSignal<IngredientReachedMouthSignal>().OptionalSubscriber();
+
+      Container.DeclareSignal<LifeLostSignal>().OptionalSubscriber();
+      Container.DeclareSignal<LifeGainedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<GameOverTriggeredSignal>().OptionalSubscriber();
+      
+      Container.DeclareSignal<BurgerLayerAddedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<BurgerStackClearedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<OrderItemMatchedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<OrderItemWrongSignal>().OptionalSubscriber();
+      Container.DeclareSignal<OrderCompletedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<OrderChangedSignal>().OptionalSubscriber();
 
       Container.BindInterfacesAndSelfTo<DebugEventLogger>().AsSingle();
     }
