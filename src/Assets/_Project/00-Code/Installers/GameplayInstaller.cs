@@ -5,6 +5,7 @@ using BurgerCatch.Gameplay.Conveyor;
 using BurgerCatch.Gameplay.Input;
 using BurgerCatch.Gameplay.Lives;
 using BurgerCatch.Gameplay.Order;
+using BurgerCatch.Gameplay.Scoring;
 using BurgerCatch.Gameplay.Time;
 using UnityEngine;
 using Zenject;
@@ -26,6 +27,7 @@ namespace BurgerCatch.Installers
       
       Container.Bind<BurgerStack>().AsSingle();
       Container.BindInterfacesAndSelfTo<OrderSystem>().AsSingle();
+      Container.BindInterfacesAndSelfTo<ScoringSystem>().AsSingle();
       
       Container.Bind<ConveyorGeometry>().FromInstance(_geometry).AsSingle();
 
@@ -49,6 +51,10 @@ namespace BurgerCatch.Installers
       Container.DeclareSignal<OrderItemWrongSignal>().OptionalSubscriber();
       Container.DeclareSignal<OrderCompletedSignal>().OptionalSubscriber();
       Container.DeclareSignal<OrderChangedSignal>().OptionalSubscriber();
+
+      Container.DeclareSignal<BurgerSpoiledSignal>().OptionalSubscriber();
+      Container.DeclareSignal<BurgerPriceChangedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<RunScoreChangedSignal>().OptionalSubscriber();
 
       Container.BindInterfacesAndSelfTo<DebugEventLogger>().AsSingle();
     }
