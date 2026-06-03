@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Conveyor;
@@ -11,7 +11,7 @@ namespace BurgerCatch.Gameplay.Order
   /// Решает, чистый слой или грязный, двигает указатель только на правильном.
   /// При завершении заказа выдаёт новый. НЕ знает про цену.
   /// </summary>
-  public sealed class OrderSystem : IInitializable, System.IDisposable
+  public sealed class OrderSystem : IInitializable, IDisposable
   {
     private readonly SignalBus _signalBus;
     private readonly BurgerStack _stack;
@@ -40,11 +40,14 @@ namespace BurgerCatch.Gameplay.Order
     {
       StartNewOrder();
       _signalBus.Subscribe<IngredientCaughtSignal>(OnCaught);
+      _signalBus.Subscribe<BurgerSpoiledSignal>(OnBurgerSpoiled);
     }
+
 
     public void Dispose()
     {
       _signalBus.Unsubscribe<IngredientCaughtSignal>(OnCaught);
+      _signalBus.Unsubscribe<BurgerSpoiledSignal>(OnBurgerSpoiled);
     }
 
     private void OnCaught(IngredientCaughtSignal s)
@@ -66,6 +69,12 @@ namespace BurgerCatch.Gameplay.Order
         _stack.AddLayer(s.Type, isDirty: true);
         _signalBus.Fire(new OrderItemWrongSignal(s.Type));
       }
+    }
+
+    private void OnBurgerSpoiled(BurgerSpoiledSignal s)
+    {
+      _stack.Clear();
+      StartNewOrder();
     }
 
     private void CompleteOrder()

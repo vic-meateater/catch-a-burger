@@ -23,6 +23,7 @@ namespace BurgerCatch.Installers
       Container.BindInterfacesAndSelfTo<ConveyorSystem>().AsSingle();
       Container.BindInterfacesAndSelfTo<NewInputService>().AsSingle();
       Container.BindInterfacesAndSelfTo<CatchResolver>().AsSingle();
+      Container.BindInterfacesAndSelfTo<HitResolver>().AsSingle();
       Container.BindInterfacesAndSelfTo<LivesSystem>().AsSingle();
       
       Container.Bind<BurgerStack>().AsSingle();
@@ -40,6 +41,8 @@ namespace BurgerCatch.Installers
       Container.DeclareSignal<IngredientDroppedSignal>().OptionalSubscriber();
       Container.DeclareSignal<ChefMovedSignal>().OptionalSubscriber();
       Container.DeclareSignal<IngredientReachedMouthSignal>().OptionalSubscriber();
+      Container.DeclareSignal<ChefHitSignal>();
+      Container.DeclareSignal<IngredientHitSignal>().OptionalSubscriber();
 
       Container.DeclareSignal<LifeLostSignal>().OptionalSubscriber();
       Container.DeclareSignal<LifeGainedSignal>().OptionalSubscriber();

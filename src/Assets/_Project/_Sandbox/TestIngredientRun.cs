@@ -4,6 +4,7 @@ using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
 using BurgerCatch.Gameplay.Order;
+using BurgerCatch.Gameplay.Scoring;
 using BurgerCatch.Gameplay.Time;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,7 +38,8 @@ namespace _Project._Sandbox
       ConveyorGeometry geometry,
       ChefController chef,
       SignalBus signalBus,
-      OrderSystem order)
+      OrderSystem order,
+      ScoringSystem scoring)
     {
       _clock = clock;
       _conveyor = conveyor;
@@ -45,6 +47,7 @@ namespace _Project._Sandbox
       _chef = chef;
       _signalBus = signalBus;
       _order = order;
+      _scoring = scoring;
     }
 
     private readonly Dictionary<Ingredient, Transform> _cubes
@@ -55,6 +58,7 @@ namespace _Project._Sandbox
     private SignalBus _signalBus;
     private OrderSystem _order;
     private Sprite _squareSprite;
+    private ScoringSystem _scoring;
 
     private void Start()
     {
@@ -84,6 +88,14 @@ namespace _Project._Sandbox
         Debug.Log("[Order] BURGER COMPLETED!"));
       _signalBus.Subscribe<BurgerLayerAddedSignal>(s =>
         Debug.Log($"[Stack] +layer {s.Type} dirty={s.IsDirty}, total={s.TotalLayers}"));
+      _signalBus.Subscribe<BurgerSpoiledSignal>(_ =>
+        Debug.Log("[Scoring] !!! BURGER SPOILED (price hit 0) !!!"));
+      _signalBus.Subscribe<OrderCompletedSignal>(_ =>
+        Debug.Log($"[Scoring] sold. RunScore now: {_scoring.RunScore}"));
+      _signalBus.Subscribe<BurgerStackClearedSignal>(_ =>
+        Debug.Log("[Stack] CLEARED"));
+      _signalBus.Subscribe<IngredientHitSignal>(s =>
+        Debug.Log($"[Hit] IngredientHit {s.Type} @ {s.Side}"));
     }
 
     private void Update()
