@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ecd37f2f05a764e7fb217ad6eb7767cd, type: 3}
   m_Name: BoostCatalog
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.BoostCatalog
-  _boosts: []
+  _boosts:
+  - {fileID: 11400000, guid: a5397a9568e9749e592ba58e9088e267, type: 2}

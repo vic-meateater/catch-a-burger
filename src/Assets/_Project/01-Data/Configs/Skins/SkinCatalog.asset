@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b84c44eeb706740788111396b294c8c3, type: 3}
   m_Name: SkinCatalog
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.SkinCatalog
-  _skins: []
+  _skins:
+  - {fileID: 11400000, guid: bc60bad929b52432fbd280725d27c6f2, type: 2}

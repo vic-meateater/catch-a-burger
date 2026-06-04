@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Boost_SlowConveyors
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.BoostDefinition
   _type: 0
-  _displayName: 
+  _displayName: Slow Conveyors
   _icon: {fileID: 0}
-  _price: 0
+  _price: 10

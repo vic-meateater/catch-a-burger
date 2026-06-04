@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ea133f17c5344290997d110d419cb3e, type: 3}
   m_Name: Skin_Roma
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.SkinDefinition
-  _id: 
-  _displayName: 
+  _id: 1
+  _displayName: Roma
   _icon: {fileID: 0}
   _price: 0
   _iapOnly: 0
