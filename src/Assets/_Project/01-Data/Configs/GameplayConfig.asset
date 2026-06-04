@@ -22,4 +22,10 @@ MonoBehaviour:
   _maxTotalThreats: 6
   _maxThreatsOnFarSide: 1
   _neededChance: 0.3
-  _orderChangeWindow: 1.5
+  _orderChangeWindow: 2
+  _interstitialEveryNGameovers: 2
+  _currencyPerScore: 1
+  _slowFactor: 0.5
+  _slowDuration: 10
+  _doublePriceDuration: 10
+  _onlyNeededDuration: 10

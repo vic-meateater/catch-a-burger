@@ -74,3 +74,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 747f8490a32e4236a2eadbfd3dc09fd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Installers.ProjectInstaller
+  _skinCatalog: {fileID: 11400000, guid: 1bb7ec8b58f984db4b8b4bafba32443d, type: 2}
+  _boostCatalog: {fileID: 11400000, guid: b69050e8e925944b6b890b048fde213b, type: 2}

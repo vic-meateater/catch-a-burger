@@ -1,10 +1,12 @@
 using BurgerCatch.Core.Leaderboard;
-using UnityEngine;
+using YG;
 
 namespace BurgerCatch.Yandex
 {
   /// <summary>
   /// Лидерборд через Plugin YG. ЕДИНСТВЕННОЕ место с YG2.* по лидерборду.
+  /// YG2.SetLeaderboard сам проверяет авторизацию игрока и включённость модуля —
+  /// если не выполнено, отправка молча пропускается (в редакторе логирует заглушку).
   /// </summary>
   public sealed class YandexLeaderboardService : ILeaderboardService
   {
@@ -13,13 +15,7 @@ namespace BurgerCatch.Yandex
 
     public void SubmitScore(int score)
     {
-      // TODO: модуль лидерборда Plugin YG в текущей сборке НЕ установлен —
-      // метода YG2.SetLeaderboard нет, поэтому вызов закомментирован, чтобы не
-      // ломать компиляцию. Включить модуль лидерборда в настройках плагина и
-      // раскомментировать строку ниже (сверив точное имя метода по доке).
-      // YG.YG2.SetLeaderboard(TechnicalName, score);
-
-      Debug.Log($"[Leaderboard] SubmitScore stub: {TechnicalName} = {score}");
+      YG2.SetLeaderboard(TechnicalName, score);
     }
   }
 }
