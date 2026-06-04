@@ -31,6 +31,15 @@ namespace BurgerCatch.Gameplay.Lives
       _signalBus.Unsubscribe<IngredientDroppedSignal>(OnIngredientDropped);
     }
 
+    // Продолжение за rewarded: вернуть в игру с одной жизнью, снять game over.
+    // Вызывается ТОЛЬКО из onReward (игрок посмотрел рекламу).
+    public void Revive()
+    {
+      _isOver = false;
+      Current = 1;
+      _signalBus.Fire(new LifeGainedSignal(Current));
+    }
+
     // Задел для пикапа-сердца (Day 14). Сейчас нигде не вызывается.
     public void Gain()
     {

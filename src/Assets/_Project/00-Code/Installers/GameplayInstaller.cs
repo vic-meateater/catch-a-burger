@@ -1,5 +1,7 @@
 using BurgerCatch.Data;
 using BurgerCatch.Events;
+using BurgerCatch.Gameplay.Ads;
+using BurgerCatch.Gameplay.Boost;
 using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
@@ -36,7 +38,12 @@ namespace BurgerCatch.Installers
       Container.BindInterfacesAndSelfTo<ScoringSystem>().AsSingle();
       
       Container.BindInterfacesAndSelfTo<SpawnDirector>().AsSingle();
-      
+
+      Container.BindInterfacesAndSelfTo<InterstitialController>().AsSingle();
+      Container.BindInterfacesAndSelfTo<ContinueController>().AsSingle();
+      Container.BindInterfacesAndSelfTo<BoostRewardController>().AsSingle();
+      Container.BindInterfacesAndSelfTo<BoostController>().AsSingle();
+
       Container.Bind<ConveyorGeometry>().FromInstance(_geometry).AsSingle();
 
       Signals();
@@ -61,6 +68,12 @@ namespace BurgerCatch.Installers
       Container.DeclareSignal<OrderItemWrongSignal>().OptionalSubscriber();
       Container.DeclareSignal<OrderCompletedSignal>().OptionalSubscriber();
       Container.DeclareSignal<OrderChangedSignal>().OptionalSubscriber();
+
+      Container.DeclareSignal<ContinueRequestedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<RunResumedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<BoostRewardRequestedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<BoostActivatedSignal>().OptionalSubscriber();
+      Container.DeclareSignal<BoostExpiredSignal>().OptionalSubscriber();
 
       Container.DeclareSignal<BurgerSpoiledSignal>().OptionalSubscriber();
       Container.DeclareSignal<BurgerPriceChangedSignal>().OptionalSubscriber();

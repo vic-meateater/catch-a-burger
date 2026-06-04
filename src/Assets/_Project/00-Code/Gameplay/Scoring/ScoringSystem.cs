@@ -20,6 +20,9 @@ namespace BurgerCatch.Gameplay.Scoring
     public int CurrentPrice { get; private set; }
     public int RunScore { get; private set; }
 
+    /// <summary>Множитель цены за бургер (1 обычно, 2 при бусте DoublePrice).</summary>
+    public int PriceMultiplier { get; set; } = 1;
+
     public ScoringSystem(SignalBus signalBus)
     {
       _signalBus = signalBus;
@@ -29,6 +32,7 @@ namespace BurgerCatch.Gameplay.Scoring
     {
       CurrentPrice = BasePrice;
       RunScore = 0;
+      PriceMultiplier = 1;
 
       _signalBus.Subscribe<OrderItemWrongSignal>(OnOrderItemWrong);
       _signalBus.Subscribe<OrderCompletedSignal>(OnOrderCompleted);
@@ -61,7 +65,7 @@ namespace BurgerCatch.Gameplay.Scoring
     // Бургер собран по заказу: текущая цена идёт в общий счёт.
     private void OnOrderCompleted(OrderCompletedSignal _)
     {
-      RunScore += CurrentPrice;
+      RunScore += CurrentPrice * PriceMultiplier;
       _signalBus.Fire(new RunScoreChangedSignal(RunScore));
       // Цену НЕ сбрасываем здесь — сброс на OrderChangedSignal (новый заказ).
     }

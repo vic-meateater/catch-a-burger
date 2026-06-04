@@ -32,6 +32,9 @@ namespace BurgerCatch.Gameplay.Spawn
     // --- Чистое окно при смене заказа: пока > 0, спавн заморожен ---
     private float _orderChangeTimer;
 
+    /// <summary>Буст OnlyNeeded: пока true — спавнится только нужный по заказу (без мусора).</summary>
+    public bool OnlyNeededMode { get; set; }
+
     public SpawnDirector(
       GameplayConfig config,
       IGameClock clock,
@@ -129,6 +132,10 @@ namespace BurgerCatch.Gameplay.Spawn
       }
 
       wasForced = false;
+
+      // Буст OnlyNeeded: мусор не спавним, всегда нужный.
+      if (OnlyNeededMode)
+        return needed;
 
       if (UnityEngine.Random.value < _config.NeededChance)
         return needed;

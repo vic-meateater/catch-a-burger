@@ -30,6 +30,15 @@ namespace BurgerCatch.Data
     [Header("Чистое окно при смене заказа")]
     [SerializeField] private float _orderChangeWindow = 1.5f;
 
+    [Header("Реклама")]
+    [SerializeField] private int _interstitialEveryNGameovers = 2;
+
+    [Header("Бусты")]
+    [SerializeField] private float _slowFactor = 0.5f;
+    [SerializeField] private float _slowDuration = 10f;
+    [SerializeField] private float _doublePriceDuration = 10f;
+    [SerializeField] private float _onlyNeededDuration = 10f;
+
     public float BaseInterval => _baseInterval;
     public float BaseSpeed => _baseSpeed;
 
@@ -46,5 +55,13 @@ namespace BurgerCatch.Data
 
     /// <summary>Длительность паузы спавна при смене заказа (игрок читает рецепт).</summary>
     public float OrderChangeWindow => _orderChangeWindow;
+
+    /// <summary>Interstitial показывается на каждый N-й game over.</summary>
+    public int InterstitialEveryNGameovers => _interstitialEveryNGameovers;
+
+    public float SlowFactor => _slowFactor;
+    public float SlowDuration => _slowDuration;
+    public float DoublePriceDuration => _doublePriceDuration;
+    public float OnlyNeededDuration => _onlyNeededDuration;
   }
 }

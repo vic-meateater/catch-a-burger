@@ -1,4 +1,5 @@
 ﻿using BurgerCatch.Bootstrap;
+using BurgerCatch.Core.Ads;
 using BurgerCatch.Core.Flow;
 using BurgerCatch.Core.Platform;
 using BurgerCatch.Core.Saves;
@@ -15,6 +16,7 @@ namespace BurgerCatch.Installers
       Signals();
       Platform();
       Saves();
+      Ads();
       Flow();
       GameBootstrap();
     }
@@ -34,6 +36,12 @@ namespace BurgerCatch.Installers
     private void Saves()
     {
       Container.Bind<ISaveService>().To<YandexSaveService>().AsSingle();
+    }
+
+    private void Ads()
+    {
+      // Реклама живёт всю игру (project scope).
+      Container.Bind<IAdService>().To<YandexAdService>().AsSingle();
     }
 
     private void Flow()
