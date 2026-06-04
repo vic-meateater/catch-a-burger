@@ -1,5 +1,6 @@
 using System;
 using BurgerCatch.Core.Ads;
+using BurgerCatch.Core.Saves;
 using BurgerCatch.Data;
 using BurgerCatch.Events;
 using Zenject;
@@ -15,14 +16,20 @@ namespace BurgerCatch.Gameplay.Ads
     private readonly SignalBus _signalBus;
     private readonly IAdService _adService;
     private readonly GameplayConfig _config;
+    private readonly ISaveService _saveService;
 
     private int _gameOverCount;
 
-    public InterstitialController(SignalBus signalBus, IAdService adService, GameplayConfig config)
+    public InterstitialController(
+      SignalBus signalBus,
+      IAdService adService,
+      GameplayConfig config,
+      ISaveService saveService)
     {
       _signalBus = signalBus;
       _adService = adService;
       _config = config;
+      _saveService = saveService;
     }
 
     public void Initialize()
@@ -37,6 +44,9 @@ namespace BurgerCatch.Gameplay.Ads
 
     private void OnGameOver(GameOverTriggeredSignal _)
     {
+      // Куплено «убрать рекламу» — interstitial не показываем (rewarded остаётся).
+      if (_saveService.Data.NoAds) return;
+
       _gameOverCount++;
 
       int n = _config.InterstitialEveryNGameovers;

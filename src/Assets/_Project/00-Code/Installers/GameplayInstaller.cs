@@ -5,6 +5,7 @@ using BurgerCatch.Gameplay.Boost;
 using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
+using BurgerCatch.Gameplay.Economy;
 using BurgerCatch.Gameplay.Input;
 using BurgerCatch.Gameplay.Lives;
 using BurgerCatch.Gameplay.Order;
@@ -44,6 +45,8 @@ namespace BurgerCatch.Installers
       Container.BindInterfacesAndSelfTo<BoostRewardController>().AsSingle();
       Container.BindInterfacesAndSelfTo<BoostController>().AsSingle();
 
+      Container.BindInterfacesAndSelfTo<RunRewardController>().AsSingle();
+
       Container.Bind<ConveyorGeometry>().FromInstance(_geometry).AsSingle();
 
       Signals();
@@ -74,6 +77,8 @@ namespace BurgerCatch.Installers
       Container.DeclareSignal<BoostRewardRequestedSignal>().OptionalSubscriber();
       Container.DeclareSignal<BoostActivatedSignal>().OptionalSubscriber();
       Container.DeclareSignal<BoostExpiredSignal>().OptionalSubscriber();
+
+      Container.DeclareSignal<BestScoreChangedSignal>().OptionalSubscriber();
 
       Container.DeclareSignal<BurgerSpoiledSignal>().OptionalSubscriber();
       Container.DeclareSignal<BurgerPriceChangedSignal>().OptionalSubscriber();

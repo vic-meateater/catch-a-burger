@@ -33,6 +33,10 @@ namespace BurgerCatch.Data
     [Header("Реклама")]
     [SerializeField] private int _interstitialEveryNGameovers = 2;
 
+    [Header("Экономика")]
+    [Tooltip("Сколько валюты за единицу счёта забега (RunScore * коэф).")]
+    [SerializeField] private float _currencyPerScore = 1f;
+
     [Header("Бусты")]
     [SerializeField] private float _slowFactor = 0.5f;
     [SerializeField] private float _slowDuration = 10f;
@@ -58,6 +62,9 @@ namespace BurgerCatch.Data
 
     /// <summary>Interstitial показывается на каждый N-й game over.</summary>
     public int InterstitialEveryNGameovers => _interstitialEveryNGameovers;
+
+    /// <summary>Коэффициент: валюта за забег = RunScore * CurrencyPerScore.</summary>
+    public float CurrencyPerScore => _currencyPerScore;
 
     public float SlowFactor => _slowFactor;
     public float SlowDuration => _slowDuration;
