@@ -1,4 +1,5 @@
-﻿using BurgerCatch.Events;
+﻿using BurgerCatch.Data;
+using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
 using BurgerCatch.Gameplay.Order;
@@ -16,24 +17,7 @@ namespace BurgerCatch.Gameplay.Spawn
   /// </summary>
   public sealed class SpawnDirector : IInitializable, System.IDisposable, ITickable
   {
-    // --- База (потом в GameplayConfig) ---
-    private const float BaseInterval = 1.2f;
-    private const float BaseSpeed = 0.2f;
-
-    // --- Рост за бургер ---
-    private const float SpeedPerBurger = 0.015f;
-    private const float IntervalCutPerBurger = 0.03f;
-
-    // --- Потолки честной сложности (обязательны!) ---
-    private const float MaxSpeed = 0.6f;
-    private const float MinInterval = 0.5f;
-
-    // --- Логика спавна ---
-    private const int ForceNeededAfter = 3;
-    private const int MaxTotalThreats = 6;
-    private const int MaxThreatsOnFarSide = 1;
-    private const float NeededChance = 0.3f;
-
+    private readonly GameplayConfig _config;
     private readonly IGameClock _clock;
     private readonly ConveyorSystem _conveyor;
     private readonly OrderSystem _order;
@@ -41,17 +25,22 @@ namespace BurgerCatch.Gameplay.Spawn
     private readonly SignalBus _signalBus;
 
     private float _timer;
-    private float _currentInterval = BaseInterval;
+    private float _currentInterval;
     private int _spawnsSinceNeeded;
     private int _burgersCompleted;
 
+    // --- Чистое окно при смене заказа: пока > 0, спавн заморожен ---
+    private float _orderChangeTimer;
+
     public SpawnDirector(
+      GameplayConfig config,
       IGameClock clock,
       ConveyorSystem conveyor,
       OrderSystem order,
       ChefController chef,
       SignalBus signalBus)
     {
+      _config = config;
       _clock = clock;
       _conveyor = conveyor;
       _order = order;
@@ -61,20 +50,29 @@ namespace BurgerCatch.Gameplay.Spawn
 
     public void Initialize()
     {
-      _conveyor.Speed = BaseSpeed;
-      _currentInterval = BaseInterval;
+      _conveyor.Speed = _config.BaseSpeed;
+      _currentInterval = _config.BaseInterval;
       _signalBus.Subscribe<OrderCompletedSignal>(OnBurgerCompleted);
+      _signalBus.Subscribe<OrderChangedSignal>(OnOrderChanged);
     }
 
     public void Dispose()
     {
       _signalBus.Unsubscribe<OrderCompletedSignal>(OnBurgerCompleted);
+      _signalBus.Unsubscribe<OrderChangedSignal>(OnOrderChanged);
     }
 
     public void Tick()
     {
       float dt = _clock.DeltaTime;
       if (dt <= 0f) return;
+
+      // Чистое окно: лента доигрывает старое, новый спавн заморожен.
+      if (_orderChangeTimer > 0f)
+      {
+        _orderChangeTimer -= dt;
+        return;
+      }
 
       _timer += dt;
       if (_timer < _currentInterval) return;
@@ -83,17 +81,23 @@ namespace BurgerCatch.Gameplay.Spawn
       TrySpawnOne();
     }
 
+    // --- Смена заказа: даём передышку на чтение нового рецепта ---
+    private void OnOrderChanged(OrderChangedSignal s)
+    {
+      _orderChangeTimer = _config.OrderChangeWindow;
+    }
+
     // --- Рост сложности: ТОЛЬКО на собранном бургере ---
     private void OnBurgerCompleted(OrderCompletedSignal s)
     {
       _burgersCompleted++;
 
-      float speed = BaseSpeed + SpeedPerBurger * _burgersCompleted;
-      _conveyor.Speed = UnityEngine.Mathf.Min(speed, MaxSpeed);
+      float speed = _config.BaseSpeed + _config.SpeedPerBurger * _burgersCompleted;
+      _conveyor.Speed = UnityEngine.Mathf.Min(speed, _config.MaxSpeed);
 
       _currentInterval = UnityEngine.Mathf.Max(
-        BaseInterval - IntervalCutPerBurger * _burgersCompleted,
-        MinInterval);
+        _config.BaseInterval - _config.IntervalCutPerBurger * _burgersCompleted,
+        _config.MinInterval);
     }
 
     // --- Спавн ---
@@ -102,7 +106,7 @@ namespace BurgerCatch.Gameplay.Spawn
       IngredientType needed = _order.Current;
       IngredientType type = ChooseType(needed, out bool wasForced);
 
-      if (!wasForced && _conveyor.Active.Count >= MaxTotalThreats)
+      if (!wasForced && _conveyor.Active.Count >= _config.MaxTotalThreats)
         return;
 
       Side side = ChooseSide();
@@ -118,7 +122,7 @@ namespace BurgerCatch.Gameplay.Spawn
 
     private IngredientType ChooseType(IngredientType needed, out bool wasForced)
     {
-      if (_spawnsSinceNeeded >= ForceNeededAfter)
+      if (_spawnsSinceNeeded >= _config.ForceNeededAfter)
       {
         wasForced = true;
         return needed;
@@ -126,7 +130,7 @@ namespace BurgerCatch.Gameplay.Spawn
 
       wasForced = false;
 
-      if (UnityEngine.Random.value < NeededChance)
+      if (UnityEngine.Random.value < _config.NeededChance)
         return needed;
 
       return ChooseJunk(needed);
@@ -148,7 +152,7 @@ namespace BurgerCatch.Gameplay.Spawn
       Side near = _chef.CurrentSide;
       Side far = near == Side.Left ? Side.Right : Side.Left;
 
-      if (CountThreatsOn(far) >= MaxThreatsOnFarSide)
+      if (CountThreatsOn(far) >= _config.MaxThreatsOnFarSide)
         return near;
 
       return UnityEngine.Random.value < 0.5f ? Side.Left : Side.Right;

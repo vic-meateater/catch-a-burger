@@ -596,6 +596,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Installers.GameplayInstaller
   _geometry: {fileID: 479053156}
+  _gameplayConfig: {fileID: 11400000, guid: 023503891bc824c4594d141ea057f2a8, type: 2}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0

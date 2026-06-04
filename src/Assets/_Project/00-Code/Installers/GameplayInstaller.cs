@@ -1,3 +1,4 @@
+using BurgerCatch.Data;
 using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Chef;
@@ -16,9 +17,12 @@ namespace BurgerCatch.Installers
   public sealed class GameplayInstaller : MonoInstaller
   {
     [SerializeField] private ConveyorGeometry _geometry;
-    
+    [SerializeField] private GameplayConfig _gameplayConfig;
+
     public override void InstallBindings()
     {
+      Container.Bind<GameplayConfig>().FromInstance(_gameplayConfig).AsSingle();
+
       Container.BindInterfacesAndSelfTo<GameClock>().AsSingle();
       Container.BindInterfacesAndSelfTo<ChefController>().AsSingle();
       Container.BindInterfacesAndSelfTo<ConveyorSystem>().AsSingle();
