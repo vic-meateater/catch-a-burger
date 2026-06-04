@@ -1,4 +1,5 @@
-﻿using BurgerCatch.Gameplay.Chef;
+﻿using BurgerCatch.Events;
+using BurgerCatch.Gameplay.Chef;
 using BurgerCatch.Gameplay.Conveyor;
 using BurgerCatch.Gameplay.Order;
 using BurgerCatch.Gameplay.Time;
@@ -7,38 +8,67 @@ using Zenject;
 namespace BurgerCatch.Gameplay.Spawn
 {
   /// <summary>
-  /// Шаг 1 + предохранитель 1: директор видит доску (позиция повара + что на лентах)
-  /// и не заваливает ДАЛЬНЮЮ сторону (где повара нет), чтобы не создавать
-  /// нечестную вилку "не успел добежать". Читает состояние напрямую (pull) —
-  /// директор это наблюдатель доски, а не реагирующий на события.
+  /// Директор спавна. Решает КОГДА/ЧТО/КУДА, держит честность (предохранители)
+  /// и растит сложность по числу СОБРАННЫХ бургеров (не по времени — чтобы
+  /// не душить буксующего игрока; протухание сложность НЕ растит).
+  /// Черновая кривая: точная модель честности по времени полёта — позже,
+  /// после фиксации геометрии/скорости.
   /// </summary>
-  public sealed class SpawnDirector : ITickable
+  public sealed class SpawnDirector : IInitializable, System.IDisposable, ITickable
   {
-    private const float SpawnInterval = 1.2f; // интервал спавна
-    private const float ForceNeededAfter = .3f; // форс нужного
-    private const int MaxTotalThreats = 6; // потолок плотности на всём поле
+    // --- База (потом в GameplayConfig) ---
+    private const float BaseInterval = 1.2f;
+    private const float BaseSpeed = 0.2f;
 
-    // Предохранитель 1: сколько угроз терпим на ДАЛЬНЕЙ стороне (где повара нет).
+    // --- Рост за бургер ---
+    private const float SpeedPerBurger = 0.015f;
+    private const float IntervalCutPerBurger = 0.03f;
+
+    // --- Потолки честной сложности (обязательны!) ---
+    private const float MaxSpeed = 0.6f;
+    private const float MinInterval = 0.5f;
+
+    // --- Логика спавна ---
+    private const int ForceNeededAfter = 3;
+    private const int MaxTotalThreats = 6;
     private const int MaxThreatsOnFarSide = 1;
+    private const float NeededChance = 0.3f;
 
     private readonly IGameClock _clock;
     private readonly ConveyorSystem _conveyor;
     private readonly OrderSystem _order;
-    private readonly ChefController _chef; // ← новые "глаза": где повар
+    private readonly ChefController _chef;
+    private readonly SignalBus _signalBus;
 
     private float _timer;
+    private float _currentInterval = BaseInterval;
     private int _spawnsSinceNeeded;
+    private int _burgersCompleted;
 
     public SpawnDirector(
       IGameClock clock,
       ConveyorSystem conveyor,
       OrderSystem order,
-      ChefController chef)
+      ChefController chef,
+      SignalBus signalBus)
     {
       _clock = clock;
       _conveyor = conveyor;
       _order = order;
       _chef = chef;
+      _signalBus = signalBus;
+    }
+
+    public void Initialize()
+    {
+      _conveyor.Speed = BaseSpeed;
+      _currentInterval = BaseInterval;
+      _signalBus.Subscribe<OrderCompletedSignal>(OnBurgerCompleted);
+    }
+
+    public void Dispose()
+    {
+      _signalBus.Unsubscribe<OrderCompletedSignal>(OnBurgerCompleted);
     }
 
     public void Tick()
@@ -47,53 +77,80 @@ namespace BurgerCatch.Gameplay.Spawn
       if (dt <= 0f) return;
 
       _timer += dt;
-      if (_timer < SpawnInterval) return;
+      if (_timer < _currentInterval) return;
 
-      _timer -= SpawnInterval;
+      _timer -= _currentInterval;
       TrySpawnOne();
     }
 
+    // --- Рост сложности: ТОЛЬКО на собранном бургере ---
+    private void OnBurgerCompleted(OrderCompletedSignal s)
+    {
+      _burgersCompleted++;
+
+      float speed = BaseSpeed + SpeedPerBurger * _burgersCompleted;
+      _conveyor.Speed = UnityEngine.Mathf.Min(speed, MaxSpeed);
+
+      _currentInterval = UnityEngine.Mathf.Max(
+        BaseInterval - IntervalCutPerBurger * _burgersCompleted,
+        MinInterval);
+    }
+
+    // --- Спавн ---
     private void TrySpawnOne()
     {
       IngredientType needed = _order.Current;
       IngredientType type = ChooseType(needed, out bool wasForced);
 
-      // Общий лимит пробивает только форсированный нужный.
       if (!wasForced && _conveyor.Active.Count >= MaxTotalThreats)
         return;
 
       Side side = ChooseSide();
       if (side == Side.None) return;
 
-      // Спавн подтверждён — ТЕПЕРЬ фиксируем состояние.
       _conveyor.Spawn(side, type);
 
-      // Счётчик "сколько подряд НЕ было нужного":
-      // заспавнили нужный -> сброс; мусор -> +1.
       if (type == needed)
         _spawnsSinceNeeded = 0;
       else
         _spawnsSinceNeeded++;
     }
 
-    /// <summary>
-    /// Выбор стороны с предохранителем: не заваливаем дальнюю сторону.
-    /// Ближняя (где повар) — спавнить можно свободно: игрок уже там.
-    /// Дальняя — только если на ней мало угроз (игрок успеет добежать).
-    /// </summary>
+    private IngredientType ChooseType(IngredientType needed, out bool wasForced)
+    {
+      if (_spawnsSinceNeeded >= ForceNeededAfter)
+      {
+        wasForced = true;
+        return needed;
+      }
+
+      wasForced = false;
+
+      if (UnityEngine.Random.value < NeededChance)
+        return needed;
+
+      return ChooseJunk(needed);
+    }
+
+    private IngredientType ChooseJunk(IngredientType needed)
+    {
+      IngredientType junk;
+      do
+      {
+        junk = (IngredientType)UnityEngine.Random.Range(0, 3);
+      } while (junk == needed);
+
+      return junk;
+    }
+
     private Side ChooseSide()
     {
       Side near = _chef.CurrentSide;
       Side far = near == Side.Left ? Side.Right : Side.Left;
 
-      int threatsFar = CountThreatsOn(far);
-
-      // Дальняя перегружена -> спавним только на ближнюю.
-      if (threatsFar >= MaxThreatsOnFarSide)
+      if (CountThreatsOn(far) >= MaxThreatsOnFarSide)
         return near;
 
-      // Иначе можно на любую — случайно, но это уже честно
-      // (на дальней ещё есть запас по угрозам).
       return UnityEngine.Random.value < 0.5f ? Side.Left : Side.Right;
     }
 
@@ -105,35 +162,6 @@ namespace BurgerCatch.Gameplay.Spawn
         if (active[i].Side == side)
           count++;
       return count;
-    }
-
-    private IngredientType ChooseType(IngredientType needed, out bool wasForced)
-    {
-      // Форс нужного, если давно не было.
-      if (_spawnsSinceNeeded >= ForceNeededAfter)
-      {
-        wasForced = true;
-        return needed;
-      }
-
-      wasForced = false;
-
-      // 50/50: нужный или мусор.
-      if (UnityEngine.Random.value < 0.5f)
-        return needed;
-
-      return ChooseJunk(needed);
-    }
-
-    private IngredientType ChooseJunk(IngredientType needed)
-    {
-      IngredientType junk;
-      do
-      {
-        junk = (IngredientType) UnityEngine.Random.Range(0, 3);
-      } while (junk == needed);
-
-      return junk;
     }
   }
 }

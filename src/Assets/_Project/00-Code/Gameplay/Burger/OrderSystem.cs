@@ -13,6 +13,10 @@ namespace BurgerCatch.Gameplay.Order
   /// </summary>
   public sealed class OrderSystem : IInitializable, IDisposable
   {
+    public int CurrentIndex => _index;
+    public IngredientType[] CurrentRecipe => Recipe;
+
+    
     private readonly SignalBus _signalBus;
     private readonly BurgerStack _stack;
 
@@ -54,20 +58,20 @@ namespace BurgerCatch.Gameplay.Order
     {
       if (s.Type == Current)
       {
-        // Правильный ингредиент: чистый слой, указатель вперёд.
         _stack.AddLayer(s.Type, isDirty: false);
-        _signalBus.Fire(new OrderItemMatchedSignal(s.Type));
         _index++;
 
         if (_index >= Recipe.Length)
+        {
+          // Бургер собран. Сначала завершаем (это сбросит _index=0 и
+          // выдаст новый заказ через OrderChanged), и только это сообщаем.
           CompleteOrder();
-      }
-      else
-      {
-        // Поймал не то (не-сейчас из заказа ИЛИ мусор): грязный слой,
-        // указатель стоит, цена среагирует на сигнал.
-        _stack.AddLayer(s.Type, isDirty: true);
-        _signalBus.Fire(new OrderItemWrongSignal(s.Type));
+        }
+        else
+        {
+          // Бургер ещё собирается: указатель валиден, сообщаем "слой совпал".
+          _signalBus.Fire(new OrderItemMatchedSignal(s.Type));
+        }
       }
     }
 
