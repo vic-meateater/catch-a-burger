@@ -66,6 +66,9 @@ namespace BurgerCatch.UI
 
     private void OnDisable()
     {
+      // Guard: объект мог отключиться до инъекции зависимостей.
+      if (_signalBus == null) return;
+
       _signalBus.Unsubscribe<GameOverTriggeredSignal>(OnGameOver);
       _signalBus.Unsubscribe<RunResumedSignal>(OnRunResumed);
 

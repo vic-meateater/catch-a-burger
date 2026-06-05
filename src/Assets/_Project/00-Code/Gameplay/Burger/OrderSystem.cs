@@ -1,7 +1,9 @@
 using System;
+using BurgerCatch.Data;
 using BurgerCatch.Events;
 using BurgerCatch.Gameplay.Burger;
 using BurgerCatch.Gameplay.Conveyor;
+using UnityEngine;
 using Zenject;
 
 namespace BurgerCatch.Gameplay.Order
@@ -14,14 +16,16 @@ namespace BurgerCatch.Gameplay.Order
   public sealed class OrderSystem : IInitializable, IDisposable
   {
     public int CurrentIndex => _index;
-    public IngredientType[] CurrentRecipe => Recipe;
+    public IngredientType[] CurrentRecipe => _recipe;
 
-    
+
     private readonly SignalBus _signalBus;
     private readonly BurgerStack _stack;
+    private readonly RecipeCatalog _recipeCatalog;
 
-    // Day 11: захардкоженный рецепт. Позже — случайный из конфига рецептов.
-    private static readonly IngredientType[] Recipe =
+    // Заглушка на случай пустого/невалидного каталога — чтобы не крашить
+    // (используется только если каталог не дал рецепт и _recipe ещё пуст).
+    private static readonly IngredientType[] FallbackRecipe =
     {
       IngredientType.Bun,
       IngredientType.Patty,
@@ -29,16 +33,20 @@ namespace BurgerCatch.Gameplay.Order
       IngredientType.Bun,
     };
 
+    // Текущий рецепт (случайный из каталога). Раньше был static-хардкод.
+    private IngredientType[] _recipe;
+
     private int _index; // указатель: какой ингредиент рецепта нужен сейчас
 
-    public OrderSystem(SignalBus signalBus, BurgerStack stack)
+    public OrderSystem(SignalBus signalBus, BurgerStack stack, RecipeCatalog recipeCatalog)
     {
       _signalBus = signalBus;
       _stack = stack;
+      _recipeCatalog = recipeCatalog;
     }
 
     /// <summary>Ингредиент, который нужен прямо сейчас.</summary>
-    public IngredientType Current => Recipe[_index];
+    public IngredientType Current => _recipe[_index];
 
     public void Initialize()
     {
@@ -61,7 +69,7 @@ namespace BurgerCatch.Gameplay.Order
         _stack.AddLayer(s.Type, isDirty: false);
         _index++;
 
-        if (_index >= Recipe.Length)
+        if (_index >= _recipe.Length)
         {
           // Бургер собран. Сначала завершаем (это сбросит _index=0 и
           // выдаст новый заказ через OrderChanged), и только это сообщаем.
@@ -92,7 +100,21 @@ namespace BurgerCatch.Gameplay.Order
     private void StartNewOrder()
     {
       _index = 0;
-      _signalBus.Fire(new OrderChangedSignal(Recipe)); // новый тикет: UI, директор (передышка)
+      _recipe = PickRecipe();
+      _signalBus.Fire(new OrderChangedSignal(_recipe)); // новый тикет: UI, директор (передышка)
+    }
+
+    // Случайный рецепт из каталога. При пустом/невалидном каталоге — ошибка в лог
+    // и заглушка (прошлый рецепт, если был; иначе FallbackRecipe), без краша.
+    private IngredientType[] PickRecipe()
+    {
+      RecipeDefinition def = _recipeCatalog != null ? _recipeCatalog.GetRandom() : null;
+
+      if (def != null && def.Sequence != null && def.Sequence.Count > 0)
+        return def.ToArray();
+
+      Debug.LogError("[OrderSystem] RecipeCatalog пуст или невалиден — используется заглушка.");
+      return _recipe ?? FallbackRecipe;
     }
   }
 }

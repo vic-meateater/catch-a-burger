@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using BurgerCatch.Core.Economy;
 using BurgerCatch.Core.Flow;
 using BurgerCatch.Core.Saves;
-using BurgerCatch.Core.Shop;
 using BurgerCatch.Data;
 using BurgerCatch.Events;
 using TMPro;
@@ -13,24 +11,29 @@ using Zenject;
 namespace BurgerCatch.UI
 {
   /// <summary>
-  /// Главное меню: баланс, выбор героя, кнопки играть/магазин/лидерборд.
-  /// ТОНКИЙ слой: выбор героя идёт через IShopService, баланс — из сервиса/сигнала.
+  /// Главный экран меню: крупно ТЕКУЩИЙ выбранный герой, баланс и кнопки
+  /// [Играть] [Сменить героя] [Магазин] [Лидерборд].
+  /// ТОНКИЙ слой: только показывает (из сервисов/сигналов) и переключает панели/сцены.
+  /// Выбор героя живёт в отдельной панели SkinSelectView, покупка — в ShopView.
   /// </summary>
   public sealed class MenuView : MonoBehaviour
   {
     [Tooltip("Текст баланса мягкой валюты.")]
     [SerializeField] private TMP_Text _balanceText;
 
-    [Header("Герои")]
-    [Tooltip("Контейнер для карточек героев.")]
-    [SerializeField] private Transform _skinsParent;
+    [Header("Текущий герой")]
+    [Tooltip("Крупный спрайт выбранного героя.")]
+    [SerializeField] private Image _currentHeroIcon;
 
-    [Tooltip("Префаб карточки героя (компонент SkinCardView на префабе).")]
-    [SerializeField] private SkinCardView _skinCardPrefab;
+    [Tooltip("Имя выбранного героя.")]
+    [SerializeField] private TMP_Text _currentHeroName;
 
     [Header("Кнопки")]
     [Tooltip("Играть — грузит сцену забега.")]
     [SerializeField] private Button _playButton;
+
+    [Tooltip("Сменить героя — открывает панель выбора.")]
+    [SerializeField] private Button _selectHeroButton;
 
     [Tooltip("Магазин — открывает панель магазина.")]
     [SerializeField] private Button _shopButton;
@@ -38,25 +41,24 @@ namespace BurgerCatch.UI
     [Tooltip("Лидерборд.")]
     [SerializeField] private Button _leaderboardButton;
 
-    [Tooltip("Панель магазина (включаем по кнопке). Если магазин — отдельная сцена, замените на загрузку.")]
+    [Header("Панели")]
+    [Tooltip("Панель выбора героя (включаем по кнопке «Сменить героя»).")]
+    [SerializeField] private GameObject _skinSelectPanel;
+
+    [Tooltip("Панель магазина (включаем по кнопке «Магазин»).")]
     [SerializeField] private GameObject _shopPanel;
 
     private SignalBus _signalBus;
     private ICurrencyService _currency;
-    private IShopService _shop;
     private SkinCatalog _skinCatalog;
     private ISaveService _saveService;
     private ISceneLoader _sceneLoader;
     private GameFlowController _flow;
 
-    // Созданные карточки героев — чтобы обновлять их состояние по сигналам.
-    private readonly List<SkinCardView> _skinCards = new List<SkinCardView>();
-
     [Inject]
     public void Construct(
       SignalBus signalBus,
       ICurrencyService currency,
-      IShopService shop,
       SkinCatalog skinCatalog,
       ISaveService saveService,
       ISceneLoader sceneLoader,
@@ -64,7 +66,6 @@ namespace BurgerCatch.UI
     {
       _signalBus = signalBus;
       _currency = currency;
-      _shop = shop;
       _skinCatalog = skinCatalog;
       _saveService = saveService;
       _sceneLoader = sceneLoader;
@@ -75,24 +76,27 @@ namespace BurgerCatch.UI
     {
       _signalBus.Subscribe<CurrencyChangedSignal>(OnCurrencyChanged);
       _signalBus.Subscribe<SkinSelectedSignal>(OnSkinSelected);
-      _signalBus.Subscribe<SkinPurchasedSignal>(OnSkinPurchased);
 
       if (_playButton != null) _playButton.onClick.AddListener(OnPlayClicked);
+      if (_selectHeroButton != null) _selectHeroButton.onClick.AddListener(OnSelectHeroClicked);
       if (_shopButton != null) _shopButton.onClick.AddListener(OnShopClicked);
       if (_leaderboardButton != null) _leaderboardButton.onClick.AddListener(OnLeaderboardClicked);
 
       // Текущее состояние сразу, без ожидания сигналов.
       RefreshBalance();
-      BuildSkins();
+      RefreshCurrentHero();
     }
 
     private void OnDisable()
     {
+      // Guard: панель могла отключиться до инъекции зависимостей.
+      if (_signalBus == null) return;
+
       _signalBus.Unsubscribe<CurrencyChangedSignal>(OnCurrencyChanged);
       _signalBus.Unsubscribe<SkinSelectedSignal>(OnSkinSelected);
-      _signalBus.Unsubscribe<SkinPurchasedSignal>(OnSkinPurchased);
 
       if (_playButton != null) _playButton.onClick.RemoveListener(OnPlayClicked);
+      if (_selectHeroButton != null) _selectHeroButton.onClick.RemoveListener(OnSelectHeroClicked);
       if (_shopButton != null) _shopButton.onClick.RemoveListener(OnShopClicked);
       if (_leaderboardButton != null) _leaderboardButton.onClick.RemoveListener(OnLeaderboardClicked);
     }
@@ -109,77 +113,40 @@ namespace BurgerCatch.UI
       if (_balanceText != null) _balanceText.text = _currency.Balance.ToString();
     }
 
-    // --- Герои ---
+    // --- Текущий герой ---
 
-    // Построить карточки из каталога (data-driven: список не хардкодим).
-    private void BuildSkins()
+    // Игрок сменил героя в панели выбора — обновить главный экран.
+    private void OnSkinSelected(SkinSelectedSignal s) => RefreshCurrentHero();
+
+    // Показать спрайт+имя выбранного героя. Id — из сейва, данные — из каталога.
+    private void RefreshCurrentHero()
     {
-      // Снести прошлые.
-      for (int i = 0; i < _skinCards.Count; i++)
-        if (_skinCards[i] != null) Destroy(_skinCards[i].gameObject);
-      _skinCards.Clear();
+      if (_skinCatalog == null || _saveService == null) return;
 
-      if (_skinCatalog == null || _skinCardPrefab == null || _skinsParent == null)
-        return;
+      string id = _saveService.Data.SelectedSkin;
+      var def = _skinCatalog.GetById(id);
+      if (def == null) return;
 
-      var skins = _skinCatalog.Skins;
-      for (int i = 0; i < skins.Count; i++)
-      {
-        var def = skins[i];
-        if (def == null) continue;
-
-        SkinCardView card = Instantiate(_skinCardPrefab, _skinsParent);
-        card.Bind(def, OnSkinClicked);
-        _skinCards.Add(card);
-      }
-
-      RefreshSkinStates();
-    }
-
-    // Нажали карточку героя.
-    private void OnSkinClicked(string skinId)
-    {
-      // Куплен → выбрать его (логика выбора в IShopService).
-      if (_shop.IsSkinOwned(skinId))
-      {
-        _shop.SelectSkin(skinId);
-        return;
-      }
-
-      // TODO: герой не куплен — разработчик решит, что делать (увести в магазин,
-      // подсветить карточку и т.п.). Покупку здесь НЕ делаем — это магазин.
-    }
-
-    // Выбор скина изменился — обновить визуальные состояния карточек.
-    private void OnSkinSelected(SkinSelectedSignal s) => RefreshSkinStates();
-
-    // Скин куплен — обновить визуальные состояния карточек.
-    private void OnSkinPurchased(SkinPurchasedSignal s) => RefreshSkinStates();
-
-    private void RefreshSkinStates()
-    {
-      string selected = _saveService.Data.SelectedSkin;
-
-      for (int i = 0; i < _skinCards.Count; i++)
-      {
-        SkinCardView card = _skinCards[i];
-        if (card == null) continue;
-
-        bool owned = _shop.IsSkinOwned(card.SkinId);
-        bool isSelected = card.SkinId == selected;
-        card.SetState(owned, isSelected);
-      }
+      if (_currentHeroIcon != null) _currentHeroIcon.sprite = def.Icon;
+      if (_currentHeroName != null) _currentHeroName.text = def.DisplayName;
     }
 
     // --- Кнопки ---
 
     // Играть: грузим сцену забега и переводим автомат (как существующий GameButton).
+    // TODO: имя сцены забега — "Game" (проверено по GameButton.cs); свериться при переименовании.
     private void OnPlayClicked()
     {
       _sceneLoader.Load("Game", () => _flow.SetState(GameState.Ready));
     }
 
-    // Магазин: включаем панель магазина (если она отдельная сцена — заменить на Load).
+    // Сменить героя: включаем панель выбора (SkinSelectView построит купленных).
+    private void OnSelectHeroClicked()
+    {
+      if (_skinSelectPanel != null) _skinSelectPanel.SetActive(true);
+    }
+
+    // Магазин: включаем панель магазина (ShopView).
     private void OnShopClicked()
     {
       if (_shopPanel != null) _shopPanel.SetActive(true);

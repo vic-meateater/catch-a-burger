@@ -21,10 +21,17 @@ namespace BurgerCatch.Installers
   {
     [SerializeField] private ConveyorGeometry _geometry;
     [SerializeField] private GameplayConfig _gameplayConfig;
+    [SerializeField] private RecipeCatalog _recipeCatalog;
+    [SerializeField] private IngredientCatalog _ingredientCatalog;
 
     public override void InstallBindings()
     {
       Container.Bind<GameplayConfig>().FromInstance(_gameplayConfig).AsSingle();
+
+      // Data-driven рецепты: OrderSystem берёт случайный рецепт из каталога.
+      // IngredientCatalog биндим тоже (HUD/арту для спрайтов по типу).
+      Container.Bind<RecipeCatalog>().FromInstance(_recipeCatalog).AsSingle();
+      Container.Bind<IngredientCatalog>().FromInstance(_ingredientCatalog).AsSingle();
 
       Container.BindInterfacesAndSelfTo<GameClock>().AsSingle();
       Container.BindInterfacesAndSelfTo<ChefController>().AsSingle();
