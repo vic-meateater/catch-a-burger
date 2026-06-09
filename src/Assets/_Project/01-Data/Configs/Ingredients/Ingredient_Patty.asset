@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 09b1cdac0aa024b26ba530c5bc0b1e41, type: 3}
-  m_Name: Ingredient_Bun
+  m_Name: Ingredient_Patty
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.IngredientDefinition
-  _type: 0
-  _displayName: "\u0411\u0443\u043B\u043A\u0430"
-  _icon: {fileID: 7196045713823203897, guid: a8841769e460d48b0bd8d437bba71a7f, type: 3}
+  _type: 1
+  _displayName: "\u041A\u043E\u0442\u043B\u0435\u0442\u0430"
+  _icon: {fileID: 2211732762826004057, guid: b0268dfd63c164ab6855a954660de18d, type: 3}

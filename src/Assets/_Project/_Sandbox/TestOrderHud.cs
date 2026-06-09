@@ -125,7 +125,8 @@ namespace BurgerCatch_Sandbox
     {
       switch (type)
       {
-        case IngredientType.Bun: return new Color(1, 0.0f, 0.3f);
+        case IngredientType.TopBun: return new Color(1, 0.0f, 0.3f);
+        case IngredientType.BottomBun: return new Color(1, 0.0f, 0.9f);
         case IngredientType.Patty: return new Color(0.45f, 0.25f, 0.1f);
         case IngredientType.Cheese: return new Color(1f, 0.6f, 0.0f);
         default: return Color.white;

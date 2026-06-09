@@ -27,10 +27,10 @@ namespace BurgerCatch.Gameplay.Order
     // (используется только если каталог не дал рецепт и _recipe ещё пуст).
     private static readonly IngredientType[] FallbackRecipe =
     {
-      IngredientType.Bun,
+      IngredientType.BottomBun,
       IngredientType.Patty,
       IngredientType.Cheese,
-      IngredientType.Bun,
+      IngredientType.TopBun,
     };
 
     // Текущий рецепт (случайный из каталога). Раньше был static-хардкод.

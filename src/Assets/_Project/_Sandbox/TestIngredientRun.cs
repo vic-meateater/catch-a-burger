@@ -114,7 +114,8 @@ namespace _Project._Sandbox
     {
       switch (type)
       {
-        case IngredientType.Bun:    return new Color(1f, 0.0f, 0.3f);  // булка — красная
+        case IngredientType.TopBun:    return new Color(1f, 0.0f, 0.3f);  // булка — красная
+        case IngredientType.BottomBun:    return new Color(1f, 0.0f, 0.9f);  // булка — красная
         case IngredientType.Patty:  return new Color(0.45f, 0.25f, 0.1f);  // котлета — коричневая
         case IngredientType.Cheese: return new Color(1f, 0.6f, 0.0f);      // сыр — оранжевый
         default:                    return Color.white;
