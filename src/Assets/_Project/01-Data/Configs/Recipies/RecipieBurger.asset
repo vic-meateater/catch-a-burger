@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: RecipieBurger
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.RecipeDefinition
   _displayName: Burger
-  _sequence: 
+  _sequence: 03000000010000000200000000000000

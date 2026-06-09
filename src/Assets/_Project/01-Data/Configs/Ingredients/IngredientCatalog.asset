@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49dd1a994880f4b97a0861d3b8be2b22, type: 3}
   m_Name: IngredientCatalog
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.IngredientCatalog
-  _ingredients: []
+  _ingredients:
+  - {fileID: 11400000, guid: 84ca06619c2c44ec4bb2e137aaeb5659, type: 2}
+  - {fileID: 11400000, guid: 601e26982db274df8b5730e744807869, type: 2}
+  - {fileID: 11400000, guid: 3ee453aaf720b4153852838bcc585cad, type: 2}
+  - {fileID: 11400000, guid: 60f4bc833b4280f4d86ef81eb4bd5075, type: 2}

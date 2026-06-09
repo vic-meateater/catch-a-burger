@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 9ee73ab8de59d4db5b9366a74d678419
+guid: d0661621eea8304448380dfefd226e24
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2553713433191813924
-    second: Lettuce_nobg_0
+      213: 481348595690179163
+    second: BottomBun_v2_removeBG_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Lettuce_nobg_0
+      name: BottomBun_v2_removeBG_0
       rect:
         serializedVersion: 2
-        x: 15
-        y: 103
-        width: 577
-        height: 402
+        x: 21
+        y: 127
+        width: 564
+        height: 330
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cdc6574a9236f8cd0800000000000000
-      internalID: -2553713433191813924
+      spriteID: b5a0f3b5ff71ea600800000000000000
+      internalID: 481348595690179163
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Lettuce_nobg_0: -2553713433191813924
+      BottomBun_v2_removeBG_0: 481348595690179163
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

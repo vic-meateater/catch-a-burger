@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ea133f17c5344290997d110d419cb3e, type: 3}
   m_Name: Skin_Roma
   m_EditorClassIdentifier: Assembly-CSharp::BurgerCatch.Data.SkinDefinition
-  _id: 1
+  _id: 0
   _displayName: Roma
   _icon: {fileID: 1847006651, guid: 96fd080be9746e8429ca95548753d4b7, type: 3}
   _price: 666
